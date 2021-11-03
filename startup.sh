@@ -44,5 +44,3 @@ EOF
 
 supervisorctl reread
 supervisorctl update
-
-# Application should now be running under supervisor
