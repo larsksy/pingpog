@@ -25,6 +25,14 @@ git clone https://github.com/larsksy/pingpog.git /opt/app/pingpog
 cd /opt/app/pingpog
 npm install
 
+mkdir bucket
+export GCSFUSE_REPO=gcsfuse-`lsb_release -c -s`
+echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+apt-get update
+apt-get install -yq gcsfuse
+gcsfuse user-elo ./bucket
+
 # Create a nodeapp user. The application will run as this user.
 /usr/sbin/useradd -m -d /home/nodeapp nodeapp
 chown -R nodeapp:nodeapp /opt/app
