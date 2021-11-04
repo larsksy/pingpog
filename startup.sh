@@ -44,6 +44,8 @@ directory=/opt/app/pingpog
 command=npm start
 autostart=true
 autorestart=true
+stopasgroup=true
+stopsignal=QUIT
 user=nodeapp
 environment=HOME="/home/nodeapp",USER="nodeapp",NODE_ENV="production"
 stdout_logfile=syslog
