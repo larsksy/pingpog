@@ -7,7 +7,7 @@ service google-fluentd restart &
 
 # Install dependencies from apt
 apt-get update
-apt-get install -yq ca-certificates git build-essential supervisor
+apt-get install -yq ca-certificates git build-essential
 
 # Install nodejs
 mkdir /opt/nodejs
@@ -25,6 +25,11 @@ git clone https://github.com/larsksy/pingpog.git /opt/app/pingpog
 cd /opt/app/pingpog
 npm install
 
+# Create a nodeapp user. The application will run as this user.
+/usr/sbin/useradd -m -d /home/nodeapp nodeapp
+chown -R nodeapp:nodeapp /opt/app
+
+# Setup bucket symlink
 mkdir bucket
 export GCSFUSE_REPO=gcsfuse-`lsb_release -c -s`
 echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
@@ -33,24 +38,21 @@ apt-get update
 apt-get install -yq gcsfuse
 gcsfuse user-elo ./bucket
 
-# Create a nodeapp user. The application will run as this user.
-/usr/sbin/useradd -m -d /home/nodeapp nodeapp
-chown -R nodeapp:nodeapp /opt/app
-
 # Configure supervisor to run the node app.
-cat >/etc/supervisor/conf.d/node-app.conf << EOF
-[program:nodeapp]
-directory=/opt/app/pingpog
-command=npm start
-autostart=true
-autorestart=true
-stopasgroup=true
-stopsignal=QUIT
-user=nodeapp
-environment=HOME="/home/nodeapp",USER="nodeapp",NODE_ENV="production"
-stdout_logfile=syslog
-stderr_logfile=syslog
+cat >/lib/systemd/system/pingpog.service << EOF
+[Unit]
+Description=Runs PingPOG Backend Service
+After=network.target
+[Service]
+Environment=PORT=3000
+Type=simple
+User=root
+WorkingDirectory=/opt/app/pingpog
+ExecStart=/usr/bin/node /opt/app/pingpog/bin/www
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
 EOF
 
-supervisorctl reread
-supervisorctl update
+systemctl daemon-reload
+systemctl start pingpog
