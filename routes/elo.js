@@ -32,7 +32,7 @@ router.post('/elo', async function(req, res, next) {
         const playerWinElo = eloDoc[playerWin] ? eloDoc[playerWin] : 1200
         const playerLoseElo = eloDoc[playerLose] ? eloDoc[playerLose] : 1200
 
-        const eloResult = elo.calculate(eloDoc[results], eloDoc[playerLose], true)
+        const eloResult = elo.calculate(eloDoc[playerWin], eloDoc[playerLose], true)
         update('elo.json',{[playerWin]: eloResult.playerRating, [playerLose]: eloResult.opponentRating})
 
         res.json(eloMessage(playerWin, playerLose, eloResult.playerRating, eloResult.opponentRating))
